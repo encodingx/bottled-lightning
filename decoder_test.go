@@ -112,19 +112,20 @@ func TestDecoder(t *testing.T) {
 	return
 }
 
-func TestDecoderReadXCK(t *testing.T) {
+func TestDecoderReadXCMK(t *testing.T) {
 	var (
 		c bool
 		e error
 		k int
+		m xMetaValue
 		x int
 
-		buffer *bytes.Buffer = bytes.NewBuffer([]byte{0b11100001, 0b11111111})
+		buffer *bytes.Buffer = bytes.NewBuffer([]byte{0b11111111, 0b11111111})
 
 		decoder *Decoder = NewDecoder(buffer, nil)
 	)
 
-	x, c, k, e = decoder.readXCK()
+	x, c, m, k, e = decoder.readXCMK()
 	if e != nil {
 		t.Error(e)
 	}
@@ -133,6 +134,8 @@ func TestDecoderReadXCK(t *testing.T) {
 
 	assert.Equal(t, true, c)
 
+	assert.Equal(t, XMetaValueF, m)
+
 	assert.Equal(t, 511, k)
 
 	_, e = buffer.Write([]byte{0, 0})
@@ -140,7 +143,7 @@ func TestDecoderReadXCK(t *testing.T) {
 		t.Error(e)
 	}
 
-	x, c, k, e = decoder.readXCK()
+	x, c, m, k, e = decoder.readXCMK()
 	if e != nil {
 		t.Error(e)
 	}
@@ -148,6 +151,8 @@ func TestDecoderReadXCK(t *testing.T) {
 	assert.Equal(t, 4, x)
 
 	assert.Equal(t, false, c)
+
+	assert.Equal(t, XMetaValue0, m)
 
 	assert.Equal(t, 0, k)
 

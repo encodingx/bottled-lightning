@@ -25,7 +25,7 @@ import (
 //
 //   - 2 bits to encode the value of x (from the second bullet point above),
 //   - 1 bit to indicate the presence of a trailing 32-bit checksum, and
-//   - 4 bits for extended metadata.
+//   - 4 bits for extended metadata---see defined constants.
 //
 // Encoders are safe for concurrent use by multiple goroutines.
 type Encoder struct {
@@ -47,7 +47,18 @@ func NewEncoder(writer io.Writer, hasher hash.Hash32) (n *Encoder) {
 }
 
 // Encode transmits a key-value record.
-func (n *Encoder) Encode(key, val []byte) (e error) {
+func (n *Encoder) Encode(key, val []byte) error {
+	return n.encode(key, val, XMetaValue0)
+}
+
+// EncodeX transmits a key-value record with extended metadata.
+func (n *Encoder) EncodeX(key, val []byte, xmv xMetaValue) error {
+	return n.encode(key, val, xmv)
+}
+
+func (n *Encoder) encode(key, val []byte, xmv xMetaValue) (e error) {
+	// Transmits a key-value record with extended metadata.
+
 	e = n.validateLens(key, val)
 	if e != nil {
 		return
@@ -57,7 +68,7 @@ func (n *Encoder) Encode(key, val []byte) (e error) {
 
 	defer n.mutex.Unlock()
 
-	e = n.writeXCK(key, val)
+	e = n.writeXCMK(key, val, xmv)
 	if e != nil {
 		return
 	}
@@ -112,24 +123,25 @@ func (n *Encoder) validateLens(key, val []byte) error {
 	return nil
 }
 
-func (n *Encoder) writeXCK(key, val []byte) (e error) {
+func (n *Encoder) writeXCMK(key, val []byte, xmv xMetaValue) (e error) {
 	// Writes the first two bytes, consisting of the following bit fields:
 	//   * X: 2 bits to encode the value of x, so that 1 <= x <= 4 represents
 	//     len(val),
 	//   * C: 1 bit to indicate the presence of a trailing 32-bit checksum,
-	//   * 4 bits for extended metadata (currently unused), and
+	//   * M: 4 bits for extended metadata, and
 	//   * K: 9 bits to represent len(key).
 	//
 	//  1           0
 	//  5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
 	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-	// | X |C|       |        K        |
+	// | X |C|   M   |        K        |
 	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 	var (
-		x = uint16((findX(val) % 4) << offsetX)
+		x = uint16(findX(val)%4) << offsetX
 		// 1: 0b01, 2: 0b10, 3: 0b11, 4: 0b00
-		c = uint16(1 << offsetC)
+		c = uint16(1) << offsetC
+		m = uint16(xmv) << offsetM
 		k = uint16(len(key))
 	)
 
@@ -137,7 +149,7 @@ func (n *Encoder) writeXCK(key, val []byte) (e error) {
 		c = 0
 	}
 
-	e = binary.Write(n.writer, binary.BigEndian, x|c|k)
+	e = binary.Write(n.writer, binary.BigEndian, x|c|m|k)
 	if e != nil {
 		return
 	}

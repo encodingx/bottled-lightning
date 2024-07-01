@@ -34,6 +34,17 @@ func NewDecoder(reader io.Reader, hasher hash.Hash32) (d *Decoder) {
 //
 // At the end of the stream, Decode returns [io.EOF].
 func (d *Decoder) Decode() (key, val []byte, e error) {
+	key, val, _, e = d.decode()
+
+	return
+}
+
+// DecodeX is a variant of Decode that also interprets extended metadata.
+func (d *Decoder) DecodeX() (key, val []byte, xmv xMetaValue, e error) {
+	return d.decode()
+}
+
+func (d *Decoder) decode() (key, val []byte, xmv xMetaValue, e error) {
 	var (
 		c bool // a trailing 32-bit checksum is present if true
 		k int  // key length
@@ -45,7 +56,7 @@ func (d *Decoder) Decode() (key, val []byte, e error) {
 
 	defer d.mutex.Unlock()
 
-	x, c, k, e = d.readXCK()
+	x, c, xmv, k, e = d.readXCMK()
 	if e != nil {
 		return
 	}
@@ -77,32 +88,34 @@ func (d *Decoder) Decode() (key, val []byte, e error) {
 	return
 }
 
-func (d *Decoder) readXCK() (x int, c bool, k int, e error) {
+func (d *Decoder) readXCMK() (x int, c bool, m xMetaValue, k int, e error) {
 	// Reads the first two bytes, expecting the following bit fields:
 	//   * X: 2 bits to encode the value of x, so that 1 <= x <= 4 represents
 	//     len(val),
 	//   * C: 1 bit to indicate the presence of a trailing 32-bit checksum,
-	//   * 4 bits for extended metadata (currently unused), and
+	//   * M: 4 bits for extended metadata, and
 	//   * K: 9 bits to represent len(key).
 
 	var (
-		xck uint16
+		xcmk uint16
 	)
 
-	e = binary.Read(d.reader, binary.BigEndian, &xck)
+	e = binary.Read(d.reader, binary.BigEndian, &xcmk)
 	if e != nil {
 		return
 	}
 
-	x = int(xck >> offsetX)
+	x = int(xcmk >> offsetX)
 
 	if x == 0 {
 		x = 4
 	}
 
-	c = (xck>>offsetC)&1 == 1
+	c = (xcmk>>offsetC)&1 == 1
 
-	k = int(xck & lmdbMaxKeyLen)
+	m = xMetaValue(xcmk>>offsetM) & XMetaValueF
+
+	k = int(xcmk & lmdbMaxKeyLen)
 
 	return
 }

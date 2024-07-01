@@ -155,7 +155,7 @@ func TestEncoderValidateLens(t *testing.T) {
 	return
 }
 
-func TestEncoderWriteXCK(t *testing.T) {
+func TestEncoderWriteXCMK(t *testing.T) {
 	var (
 		buffer bytes.Buffer
 		key    = make([]byte, 341)
@@ -165,10 +165,10 @@ func TestEncoderWriteXCK(t *testing.T) {
 	)
 
 	assert.NoError(t,
-		encoder.writeXCK(key, val),
+		encoder.writeXCMK(key, val, XMetaValueA),
 	)
 
-	assert.Equal(t, []byte{0b11000001, 0b01010101},
+	assert.Equal(t, []byte{0b11010101, 0b01010101},
 		buffer.Bytes(),
 	)
 
@@ -182,7 +182,7 @@ func TestEncoderWriteXCK(t *testing.T) {
 	)
 
 	assert.NoError(t,
-		encoder.writeXCK(key, val),
+		encoder.writeXCMK(key, val, XMetaValue0),
 	)
 
 	assert.Equal(t, []byte{0b00100000, 0b10101010},
