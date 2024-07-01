@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// Inspired by encoding/gob.Decoder from the Go standard library, a Decoder
+// Inspired by [encoding/gob.Decoder] from the Go standard library, a Decoder
 // specialises in the receipt of LMDB key-value records transmitted by an
 // Encoder counterpart. It is safe for concurrent use by multiple goroutines.
 type Decoder struct {

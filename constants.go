@@ -2,6 +2,9 @@ package bottledlightning
 
 type xMetaValue byte
 
+// Extended metadata values XMetaValue[0, F] can be assigned arbitrary meaning
+// attached to records transmitted and received by [Encoder.EncodeX] and
+// [Decoder.DecodeX].
 const (
 	XMetaValue0 xMetaValue = iota
 	XMetaValue1

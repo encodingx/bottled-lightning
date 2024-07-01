@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// An Encoder is modelled after encoding/gob.Encoder from the Go standard
+// An Encoder is modelled after [encoding/gob.Encoder] from the Go standard
 // library, but specialises in the transmission of LMDB key-value records.
 //
 // An LMDB record, consisting of a key no more than 511 bytes long, and a value
