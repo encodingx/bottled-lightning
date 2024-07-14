@@ -105,9 +105,7 @@ func TestDecoder(t *testing.T) {
 
 	_, _, e = decoder.Decode()
 
-	assert.Equal(t, io.EOF,
-		e,
-	)
+	assert.ErrorIs(t, e, io.EOF)
 
 	return
 }

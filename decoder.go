@@ -32,7 +32,8 @@ func NewDecoder(reader io.Reader, hasher hash.Hash32) (d *Decoder) {
 // Decode receives the next record from the input stream and returns two byte
 // slices containing the key and value, respectively.
 //
-// At the end of the stream, Decode returns [io.EOF].
+// At the end of the stream, Decode returns a wrapped [io.EOF]. See [errors.Is]
+// for more information on detecting wrapped errors.
 func (d *Decoder) Decode() (key, val []byte, e error) {
 	key, val, _, e = d.decode()
 
@@ -45,6 +46,8 @@ func (d *Decoder) DecodeX() (key, val []byte, xmv xMetaValue, e error) {
 }
 
 func (d *Decoder) decode() (key, val []byte, xmv xMetaValue, e error) {
+	defer errorf("could not decode record", &e)
+
 	var (
 		c bool // a trailing 32-bit checksum is present if true
 		k int  // key length
@@ -198,7 +201,7 @@ func (d *Decoder) verifyChecksum(key, val []byte) (e error) {
 	computed = d.hasher.Sum32()
 
 	if computed != observed {
-		e = fmt.Errorf("could not verify record: checksum does not match")
+		e = fmt.Errorf("computed checksum does not match observed")
 
 		return
 	}

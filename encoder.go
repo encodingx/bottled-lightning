@@ -59,6 +59,8 @@ func (n *Encoder) EncodeX(key, val []byte, xmv xMetaValue) error {
 func (n *Encoder) encode(key, val []byte, xmv xMetaValue) (e error) {
 	// Transmits a key-value record with extended metadata.
 
+	defer errorf("could not encode record", &e)
+
 	e = n.validateLens(key, val)
 	if e != nil {
 		return
@@ -104,20 +106,12 @@ func (n *Encoder) validateLens(key, val []byte) error {
 	// Returns a descriptive error if either length of key or val exceeds the
 	// respective thresholds set by LMDB, or nil otherwise.
 
-	const (
-		lmdbMaxValLen = 1 << 32
-	)
-
 	if len(key) > lmdbMaxKeyLen {
-		return fmt.Errorf("could not encode record: " +
-			"LMDB maximum key length (511 B) exceeded",
-		)
+		return fmt.Errorf("LMDB maximum key length (511 B) exceeded")
 	}
 
 	if len(val) > lmdbMaxValLen {
-		return fmt.Errorf("could not encode record: " +
-			"LMDB maximum value length (4 GiB) exceeded",
-		)
+		return fmt.Errorf("LMDB maximum value length (4 GiB) exceeded")
 	}
 
 	return nil

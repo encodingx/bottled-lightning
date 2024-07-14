@@ -26,6 +26,7 @@ const (
 
 const (
 	lmdbMaxKeyLen = 511
+	lmdbMaxValLen = 1 << 32
 	maxUintLen32  = 4
 	offsetC       = 13
 	offsetM       = 9
