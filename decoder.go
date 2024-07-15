@@ -130,7 +130,7 @@ func (d *Decoder) readV(x int) (v int, e error) {
 		b = make([]byte, maxUintLen32)
 	)
 
-	_, e = d.reader.Read(b[maxUintLen32-x:])
+	_, e = io.ReadFull(d.reader, b[maxUintLen32-x:])
 	if e != nil {
 		return
 	}
@@ -145,7 +145,7 @@ func (d *Decoder) readKey(k int) (key []byte, e error) {
 
 	key = make([]byte, k)
 
-	_, e = d.reader.Read(key)
+	_, e = io.ReadFull(d.reader, key)
 	if e != nil {
 		return
 	}
@@ -158,7 +158,7 @@ func (d *Decoder) readVal(v int) (val []byte, e error) {
 
 	val = make([]byte, v)
 
-	_, e = d.reader.Read(val)
+	_, e = io.ReadFull(d.reader, val)
 	if e != nil {
 		return
 	}
