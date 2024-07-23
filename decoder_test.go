@@ -115,7 +115,7 @@ func TestDecoderReadXCMK(t *testing.T) {
 		c bool
 		e error
 		k int
-		m xMetaValue
+		m byte
 		x int
 
 		buffer *bytes.Buffer = bytes.NewBuffer([]byte{0b11111111, 0b11111111})
@@ -132,7 +132,10 @@ func TestDecoderReadXCMK(t *testing.T) {
 
 	assert.Equal(t, true, c)
 
-	assert.Equal(t, XMetaValueF, m)
+	assert.Equal(t,
+		byte(XMetaValueF),
+		m,
+	)
 
 	assert.Equal(t, 511, k)
 
@@ -150,7 +153,10 @@ func TestDecoderReadXCMK(t *testing.T) {
 
 	assert.Equal(t, false, c)
 
-	assert.Equal(t, XMetaValue0, m)
+	assert.Equal(t,
+		byte(XMetaValue0),
+		m,
+	)
 
 	assert.Equal(t, 0, k)
 

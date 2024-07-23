@@ -41,11 +41,11 @@ func (d *Decoder) Decode() (key, val []byte, e error) {
 }
 
 // DecodeX is a variant of Decode that also interprets extended metadata.
-func (d *Decoder) DecodeX() (key, val []byte, xmv xMetaValue, e error) {
+func (d *Decoder) DecodeX() (key, val []byte, xmv byte, e error) {
 	return d.decode()
 }
 
-func (d *Decoder) decode() (key, val []byte, xmv xMetaValue, e error) {
+func (d *Decoder) decode() (key, val []byte, xmv byte, e error) {
 	defer errorf("could not decode record", &e)
 
 	var (
@@ -91,7 +91,7 @@ func (d *Decoder) decode() (key, val []byte, xmv xMetaValue, e error) {
 	return
 }
 
-func (d *Decoder) readXCMK() (x int, c bool, m xMetaValue, k int, e error) {
+func (d *Decoder) readXCMK() (x int, c bool, m byte, k int, e error) {
 	// Reads the first two bytes, expecting the following bit fields:
 	//   * X: 2 bits to encode the value of x, so that 1 <= x <= 4 represents
 	//     len(val),
@@ -116,7 +116,7 @@ func (d *Decoder) readXCMK() (x int, c bool, m xMetaValue, k int, e error) {
 
 	c = (xcmk>>offsetC)&1 == 1
 
-	m = xMetaValue(xcmk>>offsetM) & XMetaValueF
+	m = byte(xcmk>>offsetM) & byte(XMetaValueF)
 
 	k = int(xcmk & lmdbMaxKeyLen)
 
